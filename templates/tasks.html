@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PWOA - Tasks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body class="bg-light">
+    <div class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Tasks</h2>
+        <a href="/" class="btn btn-link">Home</a>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="alert alert-{{ category }}">{{ msg }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="row">
+        <div class="col-md-7">
+          <div class="card mb-3 shadow-sm">
+            <div class="card-body p-2">
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Priority</th>
+                   <th>Priority Score</th>
+                   <th>Est. Time (min)</th>
+                   <th>Created At</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tasks-tbody">
+                  {% for t in tasks %}
+                  <tr>
+                    <td>{{ t.priority_score }}</td>
+                    <td>{{ t.id }}</td>
+                    <td>{{ t.description }}</td>
+                    <td>{{ t.priority }}</td>
+                    <td>{{ t.category }}</td>
+                    <td>{{ t.status }}</td>
+                    <td>
+                      {% if t.status == 'completed' %}
+                        <button class="btn btn-sm btn-success" disabled>Completed</button>
+                      {% else %}
+                        <form action="/ui/complete/{{ t.id }}" method="post" style="display:inline">
+                          <button class="btn btn-sm btn-outline-success" type="submit">Complete</button>
+                        </form>
+                      {% endif %}
+                      <form action="/ui/delete/{{ t.id }}" method="post" style="display:inline; margin-left:6px">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-5">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">Add Task</h5>
+              <form id="create-form" action="/ui/create_task" method="post">
+                <div class="mb-2">
+                  <label class="form-label">Description</label>
+                  <input name="description" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Category</label>
+                  <select name="category" class="form-select">
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="learning">Learning</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="finance">Finance</option>
+                    <option value="misc" selected>Misc</option>
+                  </select>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Estimated time (minutes)</label>
+                  <input name="estimated_time_minutes" class="form-control" value="30">
+                </div>
+                <div class="mb-2 form-check">
+                  <input type="checkbox" name="calendar_reminder" class="form-check-input" id="calendar_reminder">
+                  <label class="form-check-label" for="calendar_reminder">Add Google Calendar reminder</label>
+                </div>
+                <button class="btn btn-success" type="submit">Create</button>
+              </form>
+            </div>
+          </div>
+
+    <script>
+    // Helper to create a table row for a task object
+    function buildRow(task){
+      const tr = document.createElement('tr');
+      tr.id = `row-${task.id}`;
+      tr.setAttribute('data-task-id', task.id);
+      tr.innerHTML = `
+        <td>${task.id}</td>
+        <td>${task.description}</td>
+        <td>${task.priority}</td>
+        <td>${task.priority_score ?? 0}</td>
+        <td>${task.category}</td>
+        <td>${task.estimated_time_minutes ?? ''}</td>
+        <td>${task.created_at ?? ''}</td>
+        <td id="status-${task.id}">${task.status}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-success btn-complete" data-id="${task.id}">Complete</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete ms-1" data-id="${task.id}">Delete</button>
+        </td>
+      `;
+      return tr;
+    }
+
+    // Delegate clicks for complete/delete
+    document.addEventListener('click', async function(e){
+      if(e.target.matches('.btn-complete')){
+        const id = e.target.getAttribute('data-id');
+        if(!confirm('Mark this task as complete?')) return;
+        try{
+          const res = await fetch(`/api/tasks/${id}/complete`, {method: 'POST'});
+          if(res.ok){
+              const updated = await res.json();
+              const statusCell = document.getElementById(`status-${id}`);
+              if(statusCell) statusCell.textContent = updated.status;
+              // update the button to a green completed state
+              try{
+                e.target.textContent = 'Completed';
+                e.target.className = 'btn btn-sm btn-success';
+                e.target.disabled = true;
+              }catch(err){}
+            } else {
+            alert('Failed to complete task');
+          }
+        }catch(err){
+          alert('Error completing task');
+        }
+      }
+
+      if(e.target.matches('.btn-delete')){
+        const id = e.target.getAttribute('data-id');
+        if(!confirm('Permanently delete this task?')) return;
+        try{
+          const res = await fetch(`/api/tasks/${id}`, {method: 'DELETE'});
+          if(res.status === 204){
+            const row = document.getElementById(`row-${id}`);
+            if(row) row.remove();
+          } else {
+            alert('Failed to delete task');
+          }
+        }catch(err){
+          alert('Error deleting task');
+        }
+      }
+    });
+
+    // Create form submit via AJAX
+    document.getElementById('create-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        description: form.description.value,
+        source: 'manual',
+        category: form.category.value,
+        estimated_time_minutes: parseInt(form.estimated_time_minutes.value || '30')
+      };
+
+      try{
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        });
+        if(res.ok){
+          const created = await res.json();
+          const tbody = document.getElementById('tasks-tbody');
+          tbody.prepend(buildRow(created));
+          form.reset();
+          alert('Task created');
+        } else {
+          const txt = await res.text();
+          alert('Failed to create task: ' + txt);
+        }
+      }catch(err){
+        alert('Error creating task');
+      }
+    });
+    </script>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>

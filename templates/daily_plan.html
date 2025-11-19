@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PWOA - Daily Plan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-light">
+    <div class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Daily Plan</h2>
+        <a href="/ui/tasks" class="btn btn-link">Tasks</a>
+      </div>
+
+      <div id="plan-area">
+        <p class="text-muted">Generating plan...</p>
+      </div>
+
+    </div>
+
+    <script>
+    async function loadPlan(){
+      const res = await fetch('/api/schedule/today');
+      const area = document.getElementById('plan-area');
+      if(!res.ok){ area.innerHTML = '<div class="alert alert-warning">Could not generate plan</div>'; return; }
+      const data = await res.json();
+      let html = '';
+      html += '<h5>Today</h5>';
+      if(data.today && data.today.length){
+        html += '<ul class="list-group mb-3">';
+        data.today.forEach(t=>{
+          html += `<li class="list-group-item"><strong>${t.description}</strong> — ${t.estimated_time_minutes} min</li>`;
+        });
+        html += '</ul>';
+      } else html += '<p class="text-muted">No tasks scheduled for today.</p>';
+
+      html += '<h5>Tomorrow</h5>';
+      if(data.tomorrow && data.tomorrow.length){
+        html += '<ul class="list-group mb-3">';
+        data.tomorrow.forEach(t=>{ html += `<li class="list-group-item">${t.description}</li>`; });
+        html += '</ul>';
+      }
+
+      html += '<h5>This Week</h5>';
+      if(data.this_week && data.this_week.length){
+        html += '<ul class="list-group mb-3">';
+        data.this_week.forEach(t=>{ html += `<li class="list-group-item">${t.description}</li>`; });
+        html += '</ul>';
+      }
+
+      area.innerHTML = html;
+    }
+    loadPlan();
+    </script>
+  </body>
+</html>
