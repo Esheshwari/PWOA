@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/banner.png" width="80%" alt="PWOA Banner">
+<!-- -- add image  -->
 </p>
 
 ---
