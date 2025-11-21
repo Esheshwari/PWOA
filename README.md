@@ -1,4 +1,4 @@
-<h1 align="center">🧠 PWOA — Personal Workflow Optimization Assistant</h1>
+<h1 align="center"> PWOA — Personal Workflow Optimization Assistant</h1>
 
 <p align="center">
   <b>AI-powered productivity system that extracts tasks, prioritizes your day, connects Gmail & Google Calendar, and automates your workflow.</b>
