@@ -35,7 +35,10 @@ jobs:
       - name: Show recent logs
         run: |
           echo "--- pytest exit code: $? ---"
-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
   deploy-heroku:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
