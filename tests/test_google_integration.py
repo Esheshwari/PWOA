@@ -61,7 +61,7 @@ def test_calendar_event_created(monkeypatch):
     def fake_get_all_tasks(status=None):
         return [t]
 
-    def fake_get_oauth_credentials(provider):
+    def fake_get_oauth_credentials(provider, user_id=None):
         return {
             'token': 'fake',
             'refresh_token': 'fake',
@@ -126,7 +126,7 @@ def test_gmail_send_endpoint(monkeypatch):
     def fake_get_task(task_id):
         return t if task_id == t.id else None
 
-    def fake_get_oauth_credentials(provider):
+    def fake_get_oauth_credentials(provider, user_id=None):
         return {
             'token': 'fake',
             'refresh_token': 'fake',
@@ -162,6 +162,9 @@ def test_gmail_send_endpoint(monkeypatch):
     monkeypatch.setattr('app.Credentials', DummyCreds2, raising=False)
 
     client = app.test_client()
+    # set a session user id so the endpoint finds per-user creds
+    with client.session_transaction() as sess:
+        sess['user_id'] = 'test-user'
     resp = client.post('/api/communications/send', json={'task_id': t.id, 'action': 'follow_up'})
     data = json.loads(resp.data)
     assert resp.status_code == 200

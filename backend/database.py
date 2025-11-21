@@ -16,11 +16,14 @@ class TaskDatabase:
     SQLite database for storing tasks
     """
 
-    def delete_oauth_credentials(self, provider: str) -> bool:
-        """Delete OAuth credentials for a provider (gmail/calendar)"""
+    def delete_oauth_credentials(self, provider: str, user_id: str | None = None) -> bool:
+        """Delete OAuth credentials for a provider (gmail/calendar). If user_id provided, delete only that user's credentials."""
         try:
             cursor = self.conn.cursor()
-            cursor.execute("DELETE FROM oauth_tokens WHERE provider = ?", (provider,))
+            if user_id:
+                cursor.execute("DELETE FROM oauth_tokens WHERE provider = ? AND user_id = ?", (provider, user_id))
+            else:
+                cursor.execute("DELETE FROM oauth_tokens WHERE provider = ?", (provider,))
             self.conn.commit()
             return True
         except Exception as e:
@@ -63,12 +66,24 @@ class TaskDatabase:
             )
         """)
 
-        # Table for storing OAuth credentials (one row per provider)
+        # Table for storing users
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                email TEXT UNIQUE,
+                name TEXT,
+                created_at TEXT
+            )
+        """)
+
+        # Table for storing OAuth credentials per user and provider
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS oauth_tokens (
-                provider TEXT PRIMARY KEY,
+                provider TEXT,
+                user_id TEXT,
                 token_json TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (provider, user_id)
             )
         """)
 
@@ -260,23 +275,38 @@ class TaskDatabase:
 
     # --- OAuth token helpers ---
     def save_oauth_credentials(self, provider: str, token_dict: dict) -> bool:
+        # Backwards-compatible single-arg save: treat as global if no user_id key
         try:
             cursor = self.conn.cursor()
-            cursor.execute("INSERT OR REPLACE INTO oauth_tokens (provider, token_json, created_at) VALUES (?, ?, ?)", (
-                provider,
-                json.dumps(token_dict),
-                datetime.now().isoformat()
-            ))
+            user_id = token_dict.get('_user_id') if isinstance(token_dict, dict) else None
+            if user_id:
+                # remove helper key before saving
+                td = dict(token_dict)
+                td.pop('_user_id', None)
+                token_json = json.dumps(td)
+                cursor.execute("INSERT OR REPLACE INTO oauth_tokens (provider, user_id, token_json, created_at) VALUES (?, ?, ?, ?)", (
+                    provider, user_id, token_json, datetime.now().isoformat()
+                ))
+            else:
+                token_json = json.dumps(token_dict)
+                # save with NULL user_id to preserve behavior for legacy global creds
+                cursor.execute("INSERT OR REPLACE INTO oauth_tokens (provider, user_id, token_json, created_at) VALUES (?, ?, ?, ?)", (
+                    provider, None, token_json, datetime.now().isoformat()
+                ))
             self.conn.commit()
             return True
         except Exception as e:
             print(f"Error saving oauth credentials for {provider}: {e}")
             return False
 
-    def get_oauth_credentials(self, provider: str) -> dict | None:
+    def get_oauth_credentials(self, provider: str, user_id: str | None = None) -> dict | None:
         try:
             cursor = self.conn.cursor()
-            cursor.execute("SELECT token_json FROM oauth_tokens WHERE provider = ?", (provider,))
+            if user_id:
+                cursor.execute("SELECT token_json FROM oauth_tokens WHERE provider = ? AND user_id = ?", (provider, user_id))
+            else:
+                # fallback to global credential (user_id IS NULL)
+                cursor.execute("SELECT token_json FROM oauth_tokens WHERE provider = ? AND user_id IS NULL", (provider,))
             row = cursor.fetchone()
             if row:
                 return json.loads(row['token_json'])
@@ -297,6 +327,50 @@ class TaskDatabase:
         except Exception as e:
             print(f"Error saving calendar event for {task_id}: {e}")
             return False
+
+    # --- User helpers ---
+    def save_user(self, email: str, name: str | None = None) -> str:
+        import uuid
+        try:
+            cursor = self.conn.cursor()
+            # check if user exists
+            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            row = cursor.fetchone()
+            if row:
+                return row['id']
+            uid = str(uuid.uuid4())
+            cursor.execute("INSERT INTO users (id, email, name, created_at) VALUES (?, ?, ?, ?)", (
+                uid, email, name, datetime.now().isoformat()
+            ))
+            self.conn.commit()
+            return uid
+        except Exception as e:
+            print(f"Error saving user {email}: {e}")
+            return ''
+
+    def get_user_by_email(self, email: str) -> dict | None:
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT id, email, name, created_at FROM users WHERE email = ?", (email,))
+            row = cursor.fetchone()
+            if row:
+                return {'id': row['id'], 'email': row['email'], 'name': row['name'], 'created_at': row['created_at']}
+            return None
+        except Exception as e:
+            print(f"Error fetching user {email}: {e}")
+            return None
+
+    def get_user_by_id(self, user_id: str) -> dict | None:
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT id, email, name, created_at FROM users WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+            if row:
+                return {'id': row['id'], 'email': row['email'], 'name': row['name'], 'created_at': row['created_at']}
+            return None
+        except Exception as e:
+            print(f"Error fetching user {user_id}: {e}")
+            return None
 
     def get_calendar_event(self, task_id: str) -> dict | None:
         try:

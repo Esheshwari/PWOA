@@ -1,63 +1,54 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PWOA - Daily Plan</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body class="bg-light">
-    {% include '_navbar.html' %}
-    <div class="container py-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Daily Plan</h2>
-        <a href="/ui/tasks" class="btn btn-link">Tasks</a>
-      </div>
+{% extends 'base.html' %}
 
-      <div id="plan-area">
-        <p class="text-muted">Generating plan...</p>
-      </div>
+{% block title %}PWOA — Daily Plan{% endblock %}
 
-    </div>
+{% block content %}
+<div>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-semibold">Daily Plan</h2>
+    <a href="/ui/tasks" class="text-indigo-600 hover:underline">Tasks</a>
+  </div>
 
-    <script>
-    (function(){
-      const bsScript = document.createElement('script');
-      bsScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
-      document.head.appendChild(bsScript);
-    })();
-    async function loadPlan(){
-      const res = await fetch('/api/schedule/today');
-      const area = document.getElementById('plan-area');
-      if(!res.ok){ area.innerHTML = '<div class="alert alert-warning">Could not generate plan</div>'; return; }
-      const data = await res.json();
-      let html = '';
-      html += '<h5>Today</h5>';
-      if(data.today && data.today.length){
-        html += '<ul class="list-group mb-3">';
-        data.today.forEach(t=>{
-          html += `<li class="list-group-item"><strong>${t.description}</strong> — ${t.estimated_time_minutes} min</li>`;
-        });
-        html += '</ul>';
-      } else html += '<p class="text-muted">No tasks scheduled for today.</p>';
+  <div id="plan-area">
+    <p class="text-gray-500">Generating plan...</p>
+  </div>
 
-      html += '<h5>Tomorrow</h5>';
-      if(data.tomorrow && data.tomorrow.length){
-        html += '<ul class="list-group mb-3">';
-        data.tomorrow.forEach(t=>{ html += `<li class="list-group-item">${t.description}</li>`; });
-        html += '</ul>';
-      }
+</div>
+{% endblock %}
 
-      html += '<h5>This Week</h5>';
-      if(data.this_week && data.this_week.length){
-        html += '<ul class="list-group mb-3">';
-        data.this_week.forEach(t=>{ html += `<li class="list-group-item">${t.description}</li>`; });
-        html += '</ul>';
-      }
+{% block scripts %}
+<script>
+async function loadPlan(){
+  const res = await fetch('/api/schedule/today');
+  const area = document.getElementById('plan-area');
+  if(!res.ok){ area.innerHTML = '<div class="text-yellow-600">Could not generate plan</div>'; return; }
+  const data = await res.json();
+  let html = '';
+  html += '<h5 class="text-lg font-medium">Today</h5>';
+  if(data.today && data.today.length){
+    html += '<ul class="space-y-2 mb-4">';
+    data.today.forEach(t=>{
+      html += `<li class="p-2 border rounded"><strong>${t.description}</strong> — ${t.estimated_time_minutes} min</li>`;
+    });
+    html += '</ul>';
+  } else html += '<p class="text-gray-500">No tasks scheduled for today.</p>';
 
-      area.innerHTML = html;
-    }
-    loadPlan();
-    </script>
-  </body>
-</html>
+  html += '<h5 class="text-lg font-medium">Tomorrow</h5>';
+  if(data.tomorrow && data.tomorrow.length){
+    html += '<ul class="space-y-2 mb-4">';
+    data.tomorrow.forEach(t=>{ html += `<li class="p-2 border rounded">${t.description}</li>`; });
+    html += '</ul>';
+  }
+
+  html += '<h5 class="text-lg font-medium">This Week</h5>';
+  if(data.this_week && data.this_week.length){
+    html += '<ul class="space-y-2 mb-4">';
+    data.this_week.forEach(t=>{ html += `<li class="p-2 border rounded">${t.description}</li>`; });
+    html += '</ul>';
+  }
+
+  area.innerHTML = html;
+}
+loadPlan();
+</script>
+{% endblock %}

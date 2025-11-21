@@ -1,78 +1,115 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PWOA - Settings</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
-  </head>
-  <body class="bg-light">
-    {% include '_navbar.html' %}
-    <div class="container py-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Settings</h2>
-        <a href="/" class="btn btn-link">Home</a>
-      </div>
+{% extends 'base.html' %}
 
-      <div class="card shadow-sm p-3">
-        <h5>Integrations</h5>
-        <p>Connect your Gmail and Google Calendar to enable email and calendar features.</p>
-        <div class="mb-2">
-          <strong>Gmail:</strong>
-          {% if gmail_connected %}
-            <span class="badge bg-success">Connected</span>
-            <a class="btn btn-outline-danger btn-sm ms-2" href="/disconnect/gmail">Disconnect</a>
-          {% else %}
-            <span class="badge bg-secondary">Not Connected</span>
-            <a id="btn-connect-gmail" class="btn btn-outline-primary btn-sm ms-2" href="/connect/gmail">Connect Gmail</a>
-          {% endif %}
-        </div>
-        <div class="mb-2">
-          <strong>Google Calendar:</strong>
-          {% if calendar_connected %}
-            <span class="badge bg-success">Connected</span>
-            <a class="btn btn-outline-danger btn-sm ms-2" href="/disconnect/calendar">Disconnect</a>
-          {% else %}
-            <span class="badge bg-secondary">Not Connected</span>
-            <a id="btn-connect-calendar" class="btn btn-outline-primary btn-sm ms-2" href="/connect/calendar">Connect Calendar</a>
-          {% endif %}
-        </div>
-        <hr/>
-        <h6>OpenAI</h6>
-        <p>Set <code>OPENAI_API_KEY</code> as an environment variable on the server or in your hosting provider's secrets.</p>
-      </div>
+{% block title %}PWOA — Settings{% endblock %}
 
-      <div class="card shadow-sm p-3 mt-3">
-        <h5>Communications (Draft Emails)</h5>
-        <p>Generate an email draft for a task using the Communication Agent (LLM-backed if `OPENAI_API_KEY` is set).</p>
-
-        <div class="mb-2">
-          <label class="form-label">Task ID</label>
-          <input id="comm-task-id" class="form-control" placeholder="e.g. task-1a2b3c4d">
-        </div>
-
-        <div class="mb-2">
-          <label class="form-label">Action</label>
-          <select id="comm-action" class="form-select">
-            <option value="follow_up">Follow up</option>
-            <option value="request_meeting">Request meeting</option>
-            <option value="summary">Summary</option>
-            <option value="completion_notice">Completion notice</option>
-          </select>
-        </div>
-
-        <button id="comm-generate" class="btn btn-primary">Generate Draft</button>
-        <button id="comm-send" class="btn btn-outline-success ms-2">Send Draft (via Gmail)</button>
-
-        <div class="mt-3">
-          <label class="form-label">Draft</label>
-          <pre id="comm-draft" class="p-3 bg-white border rounded" style="white-space:pre-wrap;"></pre>
-        </div>
-      </div>
-
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h2 class="text-2xl font-semibold">Settings</h2>
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-indigo-600 hover:underline">Home</a>
+      {% if user_info %}
+        <span class="text-gray-600">Signed in as <strong>{{ user_info.email }}</strong></span>
+        <a class="px-3 py-1 border rounded text-sm" href="/auth/logout">Sign out</a>
+      {% else %}
+        <a class="px-3 py-1 bg-indigo-600 text-white rounded text-sm" href="/auth/login">Sign in with Google</a>
+      {% endif %}
     </div>
-    <script>
+  </div>
+
+  <div class="bg-white rounded shadow p-4">
+    <h5 class="text-lg font-medium">Integrations</h5>
+    <p class="text-gray-600">Connect your Gmail and Google Calendar to enable email and calendar features.</p>
+    <div class="mt-3">
+      <strong>Gmail:</strong>
+      {% if gmail_connected %}
+          <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">Connected</span>
+          {% if gmail_info and gmail_info.account_email %}
+            <small class="ml-2 text-gray-600">{{ gmail_info.account_email }}</small>
+          {% endif %}
+          {% if gmail_info and gmail_info.connected_at %}
+            <small class="ml-2 text-gray-600">(connected {{ gmail_info.connected_at }})</small>
+          {% endif %}
+          <a class="ml-3 px-2 py-1 border rounded text-sm text-red-600" href="/disconnect/gmail">Disconnect</a>
+      {% else %}
+        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">Not Connected</span>
+        <a id="btn-connect-gmail" class="ml-3 px-2 py-1 border rounded text-sm" href="/connect/gmail">Connect Gmail</a>
+      {% endif %}
+    </div>
+    <div class="mt-3">
+      <strong>Google Calendar:</strong>
+      {% if calendar_connected %}
+        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">Connected</span>
+        {% if calendar_info and calendar_info.account_email %}
+          <small class="ml-2 text-gray-600">{{ calendar_info.account_email }}</small>
+        {% endif %}
+        {% if calendar_info and calendar_info.connected_at %}
+          <small class="ml-2 text-gray-600">(connected {{ calendar_info.connected_at }})</small>
+        {% endif %}
+        <a class="ml-3 px-2 py-1 border rounded text-sm text-red-600" href="/disconnect/calendar">Disconnect</a>
+      {% else %}
+        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">Not Connected</span>
+        <a id="btn-connect-calendar" class="ml-3 px-2 py-1 border rounded text-sm" href="/connect/calendar">Connect Calendar</a>
+      {% endif %}
+    </div>
+    <hr class="my-4"/>
+    <h6 class="font-medium">OpenAI</h6>
+    <div class="mt-2">
+      {% if openai_enabled %}
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">Enabled</span>
+        <span class="ml-3 text-sm text-gray-600">LLM features available for drafts and extraction.</span>
+      {% else %}
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">Not Enabled</span>
+        <span class="ml-3 text-sm text-gray-600">LLM features are disabled. You can enable them for better drafts.</span>
+      {% endif %}
+
+      <div class="mt-3">
+        <button id="show-openai-help" class="text-sm text-indigo-600 hover:underline">How to enable OpenAI (no keys shown)</button>
+        <div id="openai-help" class="mt-2 hidden p-3 bg-gray-50 border rounded text-sm">
+          <p>On most hosts you can set the environment variable <code>OPENAI_API_KEY</code> in your deployment settings. Example (Windows PowerShell):</p>
+          <pre id="openai-cmd" class="p-2 bg-white border rounded text-xs">$env:OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY'</pre>
+          <div class="mt-2"><button id="copy-openai-cmd" class="px-2 py-1 bg-indigo-600 text-white rounded text-sm">Copy example</button></div>
+          <p class="mt-2 text-gray-500">Do NOT paste your secret into the app UI; keep it in your host's secret manager.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded shadow p-4">
+    <h5 class="text-lg font-medium">Communications (Draft Emails)</h5>
+    <p class="text-gray-600">Generate an email draft for a task using the Communication Agent (LLM-backed if `OPENAI_API_KEY` is set).</p>
+
+    <div class="mt-3">
+      <label class="block text-sm">Task ID</label>
+      <input id="comm-task-id" class="w-full border rounded px-2 py-1" placeholder="e.g. task-1a2b3c4d">
+    </div>
+
+    <div class="mt-3">
+      <label class="block text-sm">Action</label>
+      <select id="comm-action" class="w-full border rounded px-2 py-1">
+        <option value="follow_up">Follow up</option>
+        <option value="request_meeting">Request meeting</option>
+        <option value="summary">Summary</option>
+        <option value="completion_notice">Completion notice</option>
+      </select>
+    </div>
+
+    <div class="mt-3">
+      <button id="comm-generate" class="bg-indigo-600 text-white px-3 py-1 rounded">Generate Draft</button>
+      <button id="comm-send" class="ml-2 px-3 py-1 border rounded">Send Draft (via Gmail)</button>
+    </div>
+
+    <div class="mt-4">
+      <label class="block text-sm">Draft</label>
+      <pre id="comm-draft" class="p-3 bg-gray-50 border rounded" style="white-space:pre-wrap;"></pre>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
       // Intercept connect clicks to check server-side env vars first
       async function checkAndRedirect(provider, href){
         try{
@@ -81,13 +118,13 @@
           });
           const data = await resp.json();
           if(!resp.ok){
-            alert('Cannot start OAuth: ' + (data.error || 'missing credentials'));
+            showToast(data.error || 'Cannot start OAuth', 'error');
             return;
           }
           // all good — navigate to OAuth endpoint (will redirect to Google)
           window.location = href;
         }catch(err){
-          alert('Network error while checking credentials: ' + err.message);
+          showToast('Network error while checking credentials: ' + err.message, 'error');
         }
       }
 
@@ -114,8 +151,10 @@
             return;
           }
           out.textContent = data.draft || JSON.stringify(data, null, 2);
+          showToast('Draft generated', 'success');
         }catch(err){
           out.textContent = 'Network error: ' + err.message;
+          showToast('Network error while generating draft', 'error');
         }
       });
 
@@ -133,9 +172,10 @@
             body: JSON.stringify({ task_id: taskId, action })
           });
           const data = await resp.json();
-          if(!resp.ok){ out.textContent = data.error || 'Send failed'; return; }
+          if(!resp.ok){ out.textContent = data.error || 'Send failed'; showToast(data.error || 'Send failed','error'); return; }
           out.textContent = 'Sent. Server response:\n' + JSON.stringify(data, null, 2);
-        }catch(err){ out.textContent = 'Network error: ' + err.message; }
+          showToast('Message sent', 'success');
+        }catch(err){ out.textContent = 'Network error: ' + err.message; showToast('Network error while sending','error'); }
       });
 
       // Attach handlers to connect buttons (if present)
@@ -143,53 +183,18 @@
       if(btnG) btnG.addEventListener('click', function(e){ e.preventDefault(); checkAndRedirect('gmail', '/connect/gmail'); });
       const btnC = document.getElementById('btn-connect-calendar');
       if(btnC) btnC.addEventListener('click', function(e){ e.preventDefault(); checkAndRedirect('calendar', '/connect/calendar'); });
-
-      document.getElementById('comm-generate').addEventListener('click', async function(){
-        const taskId = document.getElementById('comm-task-id').value.trim();
-        const action = document.getElementById('comm-action').value;
-        const out = document.getElementById('comm-draft');
-        out.textContent = 'Generating...';
-
-        if(!taskId){
-          out.textContent = 'Please enter a task id.';
-          return;
-        }
-
-        try{
-          const resp = await fetch('/api/communications/draft', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task_id: taskId, action })
-          });
-          const data = await resp.json();
-          if(!resp.ok){
-            out.textContent = data.error || 'Error generating draft';
-            return;
-          }
-          out.textContent = data.draft || JSON.stringify(data, null, 2);
-        }catch(err){
-          out.textContent = 'Network error: ' + err.message;
-        }
-      });
-
-      document.getElementById('comm-send').addEventListener('click', async function(){
-        const taskId = document.getElementById('comm-task-id').value.trim();
-        const action = document.getElementById('comm-action').value;
-        const out = document.getElementById('comm-draft');
-        if(!taskId){ out.textContent = 'Please enter a task id.'; return; }
-        out.textContent = 'Sending...';
-        try{
-          // attempt to send; server will generate draft if needed
-          const resp = await fetch('/api/communications/send', {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ task_id: taskId, action })
-          });
-          const data = await resp.json();
-          if(!resp.ok){ out.textContent = data.error || 'Send failed'; return; }
-          out.textContent = 'Sent. Server response:\n' + JSON.stringify(data, null, 2);
-        }catch(err){ out.textContent = 'Network error: ' + err.message; }
-      });
-    </script>
-  </body>
-</html>
+      // OpenAI help toggle and copy
+      const showHelp = document.getElementById('show-openai-help');
+      if(showHelp){
+        showHelp.addEventListener('click', ()=>{
+          const h = document.getElementById('openai-help'); if(h) h.classList.toggle('hidden');
+        });
+      }
+      const copyBtn = document.getElementById('copy-openai-cmd');
+      if(copyBtn){
+        copyBtn.addEventListener('click', ()=>{
+          const txt = document.getElementById('openai-cmd').innerText || '';
+          navigator.clipboard?.writeText(txt).then(()=> showToast('Example copied','success')).catch(()=> showToast('Copy failed','error'));
+        });
+      }
+{% endblock %}

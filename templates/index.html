@@ -1,84 +1,54 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PWOA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
-  </head>
-  <body class="bg-light">
-    {% include '_navbar.html' %}
-    <div class="container py-5">
-      <div class="text-center mb-4">
-        <h1>🤖 PWOA</h1>
-        <p class="text-muted">Personal Work Organization Assistant</p>
-      </div>
+{% extends 'base.html' %}
 
-      <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title">Tasks</h6>
-              <div id="stat-tasks" class="display-6">...</div>
-              <a href="/ui/tasks" class="btn btn-primary btn-sm mt-2">View Tasks</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title">Today's Plan</h6>
-              <ul id="plan-today" class="list-unstyled mb-2" style="min-height:2em"></ul>
-              <a href="/ui/daily_plan" class="btn btn-success btn-sm">Daily Plan</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4 mb-3">
-          <div class="card text-center shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title">Quick Actions</h6>
-              <a href="/ui/add_tasks" class="btn btn-secondary btn-sm mb-2">Add Tasks</a><br>
-              <a href="/ui/settings" class="btn btn-outline-dark btn-sm">Settings</a>
-            </div>
-          </div>
-        </div>
-      </div>
+{% block title %}PWOA — Home{% endblock %}
 
-      <div class="row justify-content-center">
-        <div class="col-md-8">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">API Access</h5>
-              <p class="card-text">Use the JSON API for automation or integration.</p>
-              <a href="/api/tasks" class="btn btn-outline-secondary">/api/tasks (JSON)</a>
-            </div>
-          </div>
-        </div>
-      </div>
+{% block content %}
+<div class="text-center mb-6">
+  <h1 class="text-3xl font-bold brand">PWOA <span class="text-gray-500 text-base font-normal">Personal Workflow Orchestrator</span></h1>
+  <p class="text-gray-600 mt-2">Organize tasks, auto-schedule, and communicate with ease.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="p-4 bg-white rounded-lg shadow">
+    <h6 class="text-sm font-semibold text-gray-600">Tasks</h6>
+    <div id="stat-tasks" class="text-2xl font-bold mt-2">...</div>
+    <a href="/ui/tasks" class="inline-block mt-4 px-3 py-1 bg-indigo-600 text-white rounded text-sm">View Tasks</a>
+  </div>
+  <div class="p-4 bg-white rounded-lg shadow">
+    <h6 class="text-sm font-semibold text-gray-600">Today's Plan</h6>
+    <ul id="plan-today" class="mt-2 min-h-[2em] text-gray-700"></ul>
+    <a href="/ui/daily_plan" class="inline-block mt-4 px-3 py-1 bg-green-600 text-white rounded text-sm">Daily Plan</a>
+  </div>
+  <div class="p-4 bg-white rounded-lg shadow">
+    <h6 class="text-sm font-semibold text-gray-600">Quick Actions</h6>
+    <div class="mt-3 space-y-2">
+      <a href="/ui/add_tasks" class="inline-block px-3 py-1 bg-gray-200 rounded text-sm">Add Tasks</a>
+      <a href="/ui/settings" class="inline-block px-3 py-1 border rounded text-sm">Settings</a>
     </div>
+  </div>
+</div>
 
-    <script>
-      // enable bootstrap collapse toggler
-      (function(){
-        const bsScript = document.createElement('script');
-        bsScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
-        document.head.appendChild(bsScript);
-      })();
-      // Fetch stats and today's plan
-      fetch('/api/tasks').then(r=>r.json()).then(tasks=>{
-        document.getElementById('stat-tasks').textContent = tasks.length;
-      });
-      fetch('/api/schedule/today').then(r=>r.json()).then(plan=>{
-        const ul = document.getElementById('plan-today');
-        ul.innerHTML = '';
-        (plan.today||[]).slice(0,3).forEach(t=>{
-          const li = document.createElement('li');
-          li.textContent = t.description;
-          ul.appendChild(li);
-        });
-        if(!plan.today || plan.today.length===0) ul.innerHTML = '<li class="text-muted">No tasks scheduled</li>';
-      });
-    </script>
-  </body>
-</html>
+<div class="bg-white rounded-lg shadow p-4">
+  <h5 class="text-lg font-semibold">API Access</h5>
+  <p class="text-gray-600">Use the JSON API for automation or integration.</p>
+  <a href="/api/tasks" class="inline-block mt-3 px-3 py-1 border rounded text-sm">/api/tasks (JSON)</a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Fetch stats and today's plan
+  fetch('/api/tasks').then(r=>r.json()).then(tasks=>{
+    const el = document.getElementById('stat-tasks'); if(el) el.textContent = tasks.length;
+  });
+  fetch('/api/schedule/today').then(r=>r.json()).then(plan=>{
+    const ul = document.getElementById('plan-today'); if(!ul) return;
+    ul.innerHTML = '';
+    (plan.today||[]).slice(0,3).forEach(t=>{
+      const li = document.createElement('li'); li.textContent = t.description; ul.appendChild(li);
+    });
+    if(!plan.today || plan.today.length===0) ul.innerHTML = '<li class="text-muted">No tasks scheduled</li>';
+  });
+</script>
+{% endblock %}

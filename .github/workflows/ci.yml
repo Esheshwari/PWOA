@@ -1,51 +1,40 @@
-name: CI
+name: Python CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: |
-          cd webapp || exit 1
+          if [ -d webapp ]; then
+            cd webapp
+          else
+            echo "webapp directory not found — continuing from repo root"
+          fi
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Run tests
         run: |
-          cd webapp || exit 1
+          if [ -d webapp ]; then
+            cd webapp
+          else
+            echo "webapp directory not found — continuing from repo root"
+          fi
           pytest -q
-      - name: Show recent logs
-        run: |
-          echo "--- pytest exit code: $? ---"
 
-  deploy-heroku:
-    needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          cd webapp || exit 1
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}

@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request, abort, render_template, redirect, url
 from backend.orchestrator import PWOAOrchestrator
 from backend.models import Task
 import os
+from datetime import datetime
 
 # Optional Google libraries
 try:
@@ -18,10 +19,36 @@ try:
 except Exception:
     GOOGLE_LIBS_AVAILABLE = False
 
+# Optional Sentry for error tracking (initialize only if SENTRY_DSN is set)
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    SENTRY_DSN = os.getenv('SENTRY_DSN')
+    if SENTRY_DSN:
+        sentry_sdk.init(dsn=SENTRY_DSN, integrations=[FlaskIntegration()], traces_sample_rate=0.1)
+except Exception:
+    # sentry is optional
+    pass
+
 app = Flask(__name__)
 # Use environment SECRET_KEY in production
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-for-flash-messages')
 orchestrator = PWOAOrchestrator()
+
+
+@app.context_processor
+def inject_current_year_and_user():
+    """Inject common template variables: current year, user_info, and OpenAI status."""
+    user_info = None
+    try:
+        user_id = session.get('user_id')
+        if user_id:
+            user_info = orchestrator.db.get_user_by_id(user_id)
+    except Exception:
+        user_info = None
+
+    openai_enabled = bool(os.getenv('OPENAI_API_KEY'))
+    return {'current_year': datetime.now().year, 'user_info': user_info, 'openai_enabled': openai_enabled}
 
 
 def _save_and_prioritize_tasks(tasks):
@@ -80,22 +107,44 @@ def api_schedule_today():
 
 @app.route('/ui/settings', methods=['GET'])
 def ui_settings():
-    # Check integration status
-    gmail_connected = orchestrator.db.get_oauth_credentials('gmail') is not None
-    calendar_connected = orchestrator.db.get_oauth_credentials('calendar') is not None
+    # Check integration status and gather metadata for current user
+    user_id = session.get('user_id')
+    gmail_creds = orchestrator.db.get_oauth_credentials('gmail', user_id=user_id)
+    calendar_creds = orchestrator.db.get_oauth_credentials('calendar', user_id=user_id)
+
+    gmail_connected = gmail_creds is not None
+    calendar_connected = calendar_creds is not None
+
+    def _mk_info(creds):
+        if not creds: return None
+        return {
+            'account_email': creds.get('account_email'),
+            'connected_at': creds.get('connected_at')
+        }
+
+    gmail_info = _mk_info(gmail_creds)
+    calendar_info = _mk_info(calendar_creds)
+
+    user_info = orchestrator.db.get_user_by_id(user_id) if user_id else None
+
     return render_template('settings.html',
                            gmail_connected=gmail_connected,
-                           calendar_connected=calendar_connected)
+                           calendar_connected=calendar_connected,
+                           gmail_info=gmail_info,
+                           calendar_info=calendar_info,
+                           user_info=user_info)
 # Disconnect endpoints for Gmail/Calendar
 @app.route('/disconnect/gmail', methods=['GET'])
 def disconnect_gmail():
-    orchestrator.db.delete_oauth_credentials('gmail')
+    user_id = session.get('user_id')
+    orchestrator.db.delete_oauth_credentials('gmail', user_id=user_id)
     flash('Gmail disconnected.', 'success')
     return redirect(url_for('ui_settings'))
 
 @app.route('/disconnect/calendar', methods=['GET'])
 def disconnect_calendar():
-    orchestrator.db.delete_oauth_credentials('calendar')
+    user_id = session.get('user_id')
+    orchestrator.db.delete_oauth_credentials('calendar', user_id=user_id)
     flash('Google Calendar disconnected.', 'success')
     return redirect(url_for('ui_settings'))
 
@@ -104,10 +153,15 @@ def disconnect_calendar():
 def connect_gmail():
     if not GOOGLE_LIBS_AVAILABLE:
         return jsonify({'error': 'Google client libraries not installed. pip install google-auth google-auth-oauthlib google-api-python-client'}), 501
-
     client_id = os.getenv('GOOGLE_CLIENT_ID')
     client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
     redirect_uri = os.getenv('OAUTH_REDIRECT_URI', url_for('oauth2callback', _external=True))
+
+    # require user to be signed in first
+    if not session.get('user_id'):
+        # remember desired provider and redirect to sign-in
+        session['after_login_provider'] = 'gmail'
+        return redirect(url_for('auth_login'))
 
     if not client_id or not client_secret:
         return jsonify({'error': 'Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in environment.'}), 400
@@ -130,14 +184,58 @@ def connect_gmail():
     return redirect(auth_url)
 
 
-@app.route('/connect/calendar', methods=['GET'])
-def connect_calendar():
+@app.route('/auth/login', methods=['GET'])
+def auth_login():
+    """Start an OpenID Connect sign-in flow with Google to create a local user session."""
     if not GOOGLE_LIBS_AVAILABLE:
-        return jsonify({'error': 'Google client libraries not installed. pip install google-auth google-auth-oauthlib google-api-python-client'}), 501
+        return jsonify({'error': 'Google client libraries not installed.'}), 501
 
     client_id = os.getenv('GOOGLE_CLIENT_ID')
     client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
     redirect_uri = os.getenv('OAUTH_REDIRECT_URI', url_for('oauth2callback', _external=True))
+
+    if not client_id or not client_secret:
+        return jsonify({'error': 'Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in environment.'}), 400
+
+    client_config = {
+        'web': {
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+            'token_uri': 'https://oauth2.googleapis.com/token'
+        }
+    }
+
+    scopes = ['openid', 'email', 'profile']
+    flow = Flow.from_client_config(client_config=client_config, scopes=scopes, redirect_uri=redirect_uri)
+    auth_url, state = flow.authorization_url(access_type='offline', include_granted_scopes='true')
+    session['oauth_state'] = state
+    session['oauth_provider'] = 'signin'
+    app.logger.info('Starting sign-in OAuth flow; redirecting to provider')
+    return redirect(auth_url)
+
+
+@app.route('/auth/logout', methods=['GET'])
+def auth_logout():
+    session_keys = list(session.keys())
+    for k in session_keys:
+        session.pop(k, None)
+    flash('Signed out.', 'success')
+    return redirect(url_for('index'))
+
+
+@app.route('/connect/calendar', methods=['GET'])
+def connect_calendar():
+    if not GOOGLE_LIBS_AVAILABLE:
+        return jsonify({'error': 'Google client libraries not installed. pip install google-auth google-auth-oauthlib google-api-python-client'}), 501
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+    redirect_uri = os.getenv('OAUTH_REDIRECT_URI', url_for('oauth2callback', _external=True))
+
+    # require user to be signed in first
+    if not session.get('user_id'):
+        session['after_login_provider'] = 'calendar'
+        return redirect(url_for('auth_login'))
 
     if not client_id or not client_secret:
         return jsonify({'error': 'Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET in environment.'}), 400
@@ -220,9 +318,72 @@ def oauth2callback():
         'scopes': list(creds.scopes) if creds.scopes else []
     }
 
-    saved = orchestrator.db.save_oauth_credentials(provider, cred_dict)
-    if not saved:
-        return jsonify({'error': 'Failed to save credentials'}), 500
+    # If this flow was a sign-in flow, create/find the user and set session
+    if provider == 'signin':
+        # try to fetch basic profile
+        try:
+            creds_for_lookup = Credentials(
+                token=cred_dict.get('token'),
+                refresh_token=cred_dict.get('refresh_token'),
+                token_uri=cred_dict.get('token_uri'),
+                client_id=cred_dict.get('client_id'),
+                client_secret=cred_dict.get('client_secret'),
+                scopes=cred_dict.get('scopes')
+            )
+            if GOOGLE_LIBS_AVAILABLE:
+                try:
+                    oauth2 = build('oauth2', 'v2', credentials=creds_for_lookup)
+                    profile = oauth2.userinfo().get().execute()
+                    email = profile.get('email')
+                    name = profile.get('name')
+                    if email:
+                        uid = orchestrator.db.save_user(email, name)
+                        session['user_id'] = uid
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # If user intended to connect a provider after login, redirect there
+        nextprov = session.pop('after_login_provider', None)
+        if nextprov == 'gmail':
+            return redirect(url_for('connect_gmail'))
+        if nextprov == 'calendar':
+            return redirect(url_for('connect_calendar'))
+        return redirect(url_for('ui_settings'))
+
+    # Otherwise this is a provider connect (gmail/calendar). Require user session
+    user_id = session.get('user_id')
+    if not user_id:
+        # instruct user to sign in first
+        flash('Please sign in before connecting Google services.', 'warning')
+        return redirect(url_for('ui_settings'))
+
+    # Try to enrich saved credentials with account email using Gmail profile (best-effort)
+    try:
+        creds_for_lookup = Credentials(
+            token=cred_dict.get('token'),
+            refresh_token=cred_dict.get('refresh_token'),
+            token_uri=cred_dict.get('token_uri'),
+            client_id=cred_dict.get('client_id'),
+            client_secret=cred_dict.get('client_secret'),
+            scopes=cred_dict.get('scopes')
+        )
+        if GOOGLE_LIBS_AVAILABLE:
+            try:
+                service = build('gmail', 'v1', credentials=creds_for_lookup)
+                profile = service.users().getProfile(userId='me').execute()
+                cred_dict['account_email'] = profile.get('emailAddress')
+            except Exception:
+                # ignore lookup failures
+                pass
+    except Exception:
+        pass
+
+    # Record connected timestamp and attach user id marker for DB
+    cred_dict['connected_at'] = datetime.now().isoformat()
+    cred_dict['_user_id'] = user_id
+    orchestrator.db.save_oauth_credentials(provider, cred_dict)
 
     return redirect(url_for('ui_settings'))
 
@@ -445,9 +606,13 @@ def api_communications_send():
         if not GOOGLE_LIBS_AVAILABLE:
             return jsonify({'error': 'Google client libraries not installed.'}), 501
 
-        creds_info = orchestrator.db.get_oauth_credentials('gmail')
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'User not signed in. Please sign in first.'}), 401
+
+        creds_info = orchestrator.db.get_oauth_credentials('gmail', user_id=user_id)
         if not creds_info:
-            return jsonify({'error': 'Gmail not connected. Please connect via Settings.'}), 400
+            return jsonify({'error': 'Gmail not connected for your account. Please connect via Settings.'}), 400
 
         creds = Credentials(
             token=creds_info.get('token'),
