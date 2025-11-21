@@ -10,3 +10,6 @@ plotly>=5.0.0
 pandas>=1.5.0
 python-dateutil
 firebase-admin         # Optional: for Firestore integration
+pytest
+pytest-mock
+gunicorn

@@ -54,6 +54,12 @@ Hosting suggestions:
 - Render / Heroku / Fly / Railway: these services can run a Python Flask app directly. Use the build/deploy options and set the `OPENAI_API_KEY` (and any other secrets) in their environment settings.
 - GitHub Actions: add a workflow to run tests/build and optionally deploy to your chosen host.
 
+Heroku via GitHub Actions (automatic):
+- Add the following repository Secrets in GitHub settings: `HEROKU_API_KEY`, `HEROKU_APP_NAME`, and `HEROKU_EMAIL`.
+- The included CI workflow will run tests and, on a successful push to `main`, deploy to Heroku using these secrets.
+
+Note: For production, set `SECRET_KEY` in Heroku config vars and other credentials like `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `OPENAI_API_KEY`.
+
 If you'd like, I can:
 - Add a sample `GitHub Actions` workflow for CI
 - Add a `Procfile` for Heroku or `render.yaml` for Render

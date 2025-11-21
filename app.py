@@ -1,3 +1,4 @@
+
 """
 Minimal Flask API for PWOA (replaces Streamlit entrypoint)
 Provides simple JSON endpoints for tasks so the project can be deployed without Streamlit.
@@ -18,7 +19,8 @@ except Exception:
     GOOGLE_LIBS_AVAILABLE = False
 
 app = Flask(__name__)
-app.secret_key = "dev-secret-for-flash-messages"
+# Use environment SECRET_KEY in production
+app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-for-flash-messages')
 orchestrator = PWOAOrchestrator()
 
 
@@ -124,6 +126,7 @@ def connect_gmail():
     auth_url, state = flow.authorization_url(access_type='offline', include_granted_scopes='true')
     session['oauth_state'] = state
     session['oauth_provider'] = 'gmail'
+    app.logger.info('Starting Gmail OAuth flow; redirecting to provider')
     return redirect(auth_url)
 
 
@@ -153,7 +156,31 @@ def connect_calendar():
     auth_url, state = flow.authorization_url(access_type='offline', include_granted_scopes='true')
     session['oauth_state'] = state
     session['oauth_provider'] = 'calendar'
+    app.logger.info('Starting Calendar OAuth flow; redirecting to provider')
     return redirect(auth_url)
+
+
+@app.route('/api/check_google_creds', methods=['POST'])
+def api_check_google_creds():
+    """Check if GOOGLE_CLIENT_ID and SECRET are set for the provider passed in JSON {'provider': 'gmail'|'calendar'}"""
+    data = request.get_json() or {}
+    provider = data.get('provider')
+    if provider not in ('gmail', 'calendar'):
+        return jsonify({'ok': False, 'error': 'Invalid provider'}), 400
+
+    missing = []
+    if not os.getenv('GOOGLE_CLIENT_ID'):
+        missing.append('GOOGLE_CLIENT_ID')
+    if not os.getenv('GOOGLE_CLIENT_SECRET'):
+        missing.append('GOOGLE_CLIENT_SECRET')
+
+    if missing:
+        msg = f"Missing environment variables: {', '.join(missing)}"
+        app.logger.warning('Google creds check failed: %s', msg)
+        return jsonify({'ok': False, 'error': msg}), 400
+
+    app.logger.info('Google creds check passed for provider %s', provider)
+    return jsonify({'ok': True})
 
 
 @app.route('/oauth2callback', methods=['GET'])
