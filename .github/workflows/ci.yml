@@ -17,12 +17,20 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          cd webapp || exit 1
+          if [ -d webapp ]; then
+              cd webapp
+          else
+              echo "webapp directory not found — continuing from repo root"
+          fi
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run tests
         run: |
-          cd webapp || exit 1
+          if [ -d webapp ]; then
+              cd webapp
+          else
+              echo "webapp directory not found — continuing from repo root"
+          fi
           pytest -q
       - name: Show recent logs
         run: |
