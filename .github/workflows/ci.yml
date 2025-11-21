@@ -15,6 +15,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+      - name: Install Heroku CLI
+        run: |
+            curl https://cli-assets.heroku.com/install.sh | sh
       - name: Install dependencies
         run: |
           if [ -d webapp ]; then
@@ -35,9 +38,7 @@ jobs:
       - name: Show recent logs
         run: |
           echo "--- pytest exit code: $? ---"
-      - name: Install Heroku CLI
-        run: |
-            curl https://cli-assets.heroku.com/install.sh | sh
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
