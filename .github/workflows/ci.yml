@@ -51,7 +51,6 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          cd webapp || exit 1
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Deploy to Heroku
