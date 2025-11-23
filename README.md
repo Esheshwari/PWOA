@@ -47,7 +47,7 @@ Add tasks as calendar events, auto-create reminders, and sync schedules to visua
 | **PriorityAgent** | Score and rank tasks |
 | **SchedulerAgent** | Generate optimized daily plans |
 | **CommunicationAgent** | Draft/Send emails using Gmail |
-| **ReflectionAgent** | Provide productivity insights (optional Gemini)
+| **ReflectionAgent** | Provide productivity insights (Gemini)
 
 ---
 
