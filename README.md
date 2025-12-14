@@ -28,7 +28,8 @@ It supports:
 - 📬 Gmail reminders + email drafting  
 - 📆 Google Calendar sync  
 - 🤖 Agents powered by **OpenAI GPT + Google Gemini**  
-- 🎨 Clean, minimal Flask UI  
+- 🎨 Clean, minimal Flask UI
+- Uses CodeRabbit to review PRs
 
 Built for **students, professionals, productivity lovers, and AI workflow automation**.
 
