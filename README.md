@@ -37,7 +37,7 @@ Built for **students, professionals, productivity lovers, and AI workflow automa
 
 # **Core Features**
 
-### 📝 **1. Smart Task Extraction**
+### **1. Smart Task Extraction**
 - Extract tasks from text, PDFs, screenshots, handwritten notes  
 - OCR (PyMuPDF + Tesseract)  
 - Detects deadlines, tags, keywords  
@@ -79,7 +79,7 @@ Produces a ranked task list automatically.
 
 ---
 
-# 🤖 **Multi-Agent System**
+#  **Multi-Agent System**
 
 <table>
 <tr><th>Agent</th><th>Role</th></tr>
