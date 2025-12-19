@@ -32,6 +32,27 @@
           <a class="hover:text-gray-800" href="/api/tasks">API</a>
         </div>
       </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const btn = document.getElementById('theme-toggle');
+        const icon = document.getElementById('theme-icon');
+        const setTheme = (t)=>{
+          if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+          else document.documentElement.removeAttribute('data-theme');
+          if(icon) icon.className = t==='dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        };
+
+        const stored = localStorage.getItem('theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        setTheme(stored);
+
+        if(btn) btn.addEventListener('click', ()=>{
+          const cur = document.documentElement.getAttribute('data-theme')==='dark' ? 'dark' : 'light';
+          const next = cur==='dark' ? 'light' : 'dark';
+          localStorage.setItem('theme', next);
+          setTheme(next);
+        });
+      });
+    </script>
     </footer>
 
     {% block scripts %}{% endblock %}

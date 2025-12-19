@@ -1,5 +1,5 @@
 <!-- PROJECT TITLE -->
-<h1 align="center">✨ PWOA — Personal Workflow Optimization Assistant ✨</h1>
+<h1 align="center">PWOA — Personal Workflow Optimization Assistant</h1>
 
 <p align="center">
   <b>Your AI-powered multi-agent assistant that extracts tasks, prioritizes your day, builds schedules, and syncs everything with Gmail & Google Calendar.</b>
@@ -16,26 +16,26 @@
 
 ---
 
-# 🌟 **Overview**
+# **Overview**
 
 **PWOA** is an intelligent, multi-agent productivity system that takes unstructured information and transforms it into a clear, actionable daily plan.
 
 It supports:
 
-- 📝 Task extraction from **text / PDFs / images**  
-- 🧠 AI-driven priority scoring  
-- 📅 Automatic daily schedule building  
-- 📬 Gmail reminders + email drafting  
-- 📆 Google Calendar sync  
-- 🤖 Agents powered by **OpenAI GPT + Google Gemini**  
-- 🎨 Clean, minimal Flask UI
+- Task extraction from **text / PDFs / images**  
+- AI-driven priority scoring  
+- Automatic daily schedule building  
+- Gmail reminders + email drafting  
+- Google Calendar sync  
+- Agents powered by **OpenAI GPT + Google Gemini**  
+- Clean, minimal Flask UI
 - Uses CodeRabbit to review PRs
 
 Built for **students, professionals, productivity lovers, and AI workflow automation**.
 
 ---
 
-# 🚀 **Core Features**
+# **Core Features**
 
 ### 📝 **1. Smart Task Extraction**
 - Extract tasks from text, PDFs, screenshots, handwritten notes  
@@ -44,7 +44,7 @@ Built for **students, professionals, productivity lovers, and AI workflow automa
 
 ---
 
-### 🎯 **2. AI Priority Agent**
+### **2. AI Priority Agent**
 AI evaluates:
 - Urgency  
 - Importance  
@@ -56,7 +56,7 @@ Produces a ranked task list automatically.
 
 ---
 
-### 📅 **3. Daily Schedule Generator**
+### **3. Daily Schedule Generator**
 - Time-blocked plan  
 - Estimated durations  
 - Productivity-aware ordering  
@@ -64,7 +64,7 @@ Produces a ranked task list automatically.
 
 ---
 
-### 📬 **4. Gmail Automation**
+### **4. Gmail Automation**
 - OAuth secure login  
 - Auto draft reminders  
 - Send daily summaries  
@@ -72,7 +72,7 @@ Produces a ranked task list automatically.
 
 ---
 
-### 📆 **5. Google Calendar Integration**
+### **5. Google Calendar Integration**
 - One-click event creation  
 - Task → Calendar event  
 - Time blocks synced instantly  
@@ -83,19 +83,19 @@ Produces a ranked task list automatically.
 
 <table>
 <tr><th>Agent</th><th>Role</th></tr>
-<tr><td>📝 <b>ExtractorAgent</b></td><td>Extracts tasks from text, PDFs, images</td></tr>
-<tr><td>🎯 <b>PriorityAgent</b></td><td>Scores & ranks tasks</td></tr>
-<tr><td>📅 <b>SchedulerAgent</b></td><td>Generates scheduled daily plan</td></tr>
-<tr><td>📬 <b>CommunicationAgent</b></td><td>Drafts & sends Gmail reminders</td></tr>
-<tr><td>🔍 <b>ReflectionAgent (Gemini)</b></td><td>Improves clarity & fixes inconsistencies</td></tr>
-<tr><td>🧩 <b>Orchestrator</b></td><td>Coordinates all agents</td></tr>
+<tr><td> <b>ExtractorAgent</b></td><td>Extracts tasks from text, PDFs, images</td></tr>
+<tr><td> <b>PriorityAgent</b></td><td>Scores & ranks tasks</td></tr>
+<tr><td> <b>SchedulerAgent</b></td><td>Generates scheduled daily plan</td></tr>
+<tr><td> <b>CommunicationAgent</b></td><td>Drafts & sends Gmail reminders</td></tr>
+<tr><td> <b>ReflectionAgent (Gemini)</b></td><td>Improves clarity & fixes inconsistencies</td></tr>
+<tr><td> <b>Orchestrator</b></td><td>Coordinates all agents</td></tr>
 </table>
 
 ---
 
-# 🧠 **AI Models Used**
+# **AI Models Used**
 
-### 🔹 **OpenAI GPT**
+### **OpenAI GPT**
 Used for:
 - Reasoning  
 - Extraction  
@@ -103,13 +103,13 @@ Used for:
 - Scheduling  
 - Email generation  
 
-### 🔸 **Google Gemini 1.5 Flash**
+### **Google Gemini 1.5 Flash**
 Used in the **ReflectionAgent** to:
 - Refine schedules  
 - Improve clarity  
 - Give productivity insights  
 
-### 🔐 Setup Gemini
+### Setup Gemini
 Add one of these in `.env`:
 
 GEMINI_API_KEY=your_key_here
@@ -121,69 +121,64 @@ Fallback enabled if Gemini isn't configured.
 
 ---
 
-# 🎨 **UI / UX**
+# **UI / UX**
 
 - Minimal + clean design  
 - Easy navigation  
 - Pages:
-  - 🏠 Home  
-  - ➕ Add Tasks  
-  - 📋 View Tasks  
-  - 📅 Daily Schedule  
-  - ⚙️ Settings (OAuth)  
+  -  Home  
+  -  Add Tasks  
+  -  View Tasks  
+  -  Daily Schedule  
+  -  Settings (OAuth)  
 
 ---
 
-# 🧩 **Tech Stack**
+# **Tech Stack**
 
-### 🖥 Backend
+### Backend
 - Python  
 - Flask  
 - SQLite  
 
-### 🤖 AI Layer
+### AI Layer
 - OpenAI GPT  
 - Google Gemini  
 - PyMuPDF  
 - Tesseract OCR  
 
-### 🔗 Integrations
+### Integrations
 - Gmail API  
 - Google Calendar API  
 - Google OAuth  
 
-### 🎨 Frontend
+### Frontend
 - HTML  
 - Jinja2  
 - TailwindCSS (CDN)  
 
 ---
 
-# 🔧 **Local Installation**
+# **Local Installation**
 
-### 1️⃣ Clone the repo  
+### 1️ Clone the repo  
 ```bash
 git clone https://github.com/Esheshwari/PWOA
 cd PWOA
 ```
 
-### 2️⃣ Create virtual environment
+### 2️ Create virtual environment
 ```bash
 python -m venv .venv
 .\.venv\Scripts\activate   # Windows PowerShell
 ```
 
-### 3️⃣ Install dependencies
+### 3️ Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4️⃣ Add environment variables (.env)
+### 4️ Add environment variables (.env)
 ```bash
 OPENAI_API_KEY=your_key_here
 GEMINI_API_KEY=your_key_here
@@ -193,14 +188,14 @@ OAUTH_REDIRECT_URI=https://your-app.com/oauth2callback
 SESSION_SECRET_KEY=super-secret-key
 ```
 
-### 5️⃣ Run the app
+### 5️ Run the app
 ```bash
 python app.py
 ```
 
-Visit 👉 http://localhost:5000/
+Visit http://localhost:5000/
 
-🔐 Google OAuth Setup (Gmail + Calendar)
+Google OAuth Setup (Gmail + Calendar)
 
 Open Google Cloud Console → https://console.cloud.google.com/apis/credentials
 
@@ -226,16 +221,16 @@ People API
 
 Put credentials in .env
 
-## 🤝 Contributing
+## Contributing
 
 PRs and improvements are welcome!
 Feel free to open issues or add new agent functionalities.
 
-## ⭐ Show Support
+## Show Support
 
 If this project helped you, please ⭐ star the repo on GitHub.
 
-## 👤 Author
+## Author
 
 Esheshwari Kumari
 🔗 GitHub: https://github.com/Esheshwari
