@@ -221,10 +221,13 @@ People API
 
 Put credentials in .env
 
-## Contributing
+## Demonstration
+* Kindly refer this youtube video to understand more about the project: https://youtu.be/_ef367QsbMQ
 
-PRs and improvements are welcome!
-Feel free to open issues or add new agent functionalities.
+
+https://github.com/user-attachments/assets/e9fdd32e-e81a-4bf1-ae46-0a740e2b00b8
+
+
 
 ## Show Support
 
