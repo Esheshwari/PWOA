@@ -227,7 +227,8 @@ Put credentials in .env
 
 https://github.com/user-attachments/assets/e9fdd32e-e81a-4bf1-ae46-0a740e2b00b8
 
-
+## LICENSE
+**MIT LICENSE**
 
 ## Show Support
 
