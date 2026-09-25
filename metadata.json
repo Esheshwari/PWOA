@@ -1,0 +1,6 @@
+{
+  "name": "PWOA — AI Work Management & Task Prioritization Platform",
+  "description": "Enterprise-grade work management platform combining deterministic priority scoring, task dependency graphs, and server-side Gemini AI prioritization and assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
