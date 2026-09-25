@@ -1,6 +1,7 @@
 {
   "version": 2,
   "routes": [
+    { "src": "^/api/ping$", "dest": "/api/ping.ts" },
     { "src": "^/api(?:/.*)?$", "dest": "/api/[...path].ts" },
     { "handle": "filesystem" },
     { "src": "^/(?!api(?:/|$)).*", "dest": "/index.html" }
