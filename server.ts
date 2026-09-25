@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { createExpressApp } from './server/src/app';
-import { config } from './server/src/config/env';
+import { config, validateRuntimeConfig } from './server/src/config/env';
 import { runMigrations } from './server/src/db/migrations';
 import { runSeeds } from './server/src/db/seeds';
 
@@ -12,6 +12,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   console.log('Initializing PWOA AI Work Management Platform...');
+  validateRuntimeConfig();
 
   // 1. Run PostgreSQL database migrations
   try {

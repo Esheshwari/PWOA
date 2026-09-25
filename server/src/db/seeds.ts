@@ -1,7 +1,13 @@
 import bcrypt from 'bcryptjs';
+import { config } from '../config/env';
 import { execute, queryOne } from './database';
 
 export async function runSeeds(): Promise<void> {
+  if (!config.seedDemoData) {
+    console.log('Demo seeding is disabled.');
+    return;
+  }
+
   const existingUser = await queryOne<{ id: string }>('SELECT id FROM users WHERE email = $1', ['demo@pwoa.dev']);
   if (existingUser) {
     console.log('Seed data already present, skipping.');
