@@ -1,6 +1,6 @@
-# PWOA — AI Work Management & Task Prioritization Platform
+# PWOA - AI Work Management & Task Prioritization Platform
 
-PWOA is an enterprise-grade full-stack work management platform combining **multi-signal deterministic priority scoring**, **Directed Acyclic Graph (DAG) task dependency resolution**, and **server-side Gemini 3.8 Flash AI reasoning**.
+PWOA (Powerful Workflow Optimization Assistant) is an enterprise-grade full-stack work management platform combining **multi-signal deterministic priority scoring**, **Directed Acyclic Graph (DAG) task dependency resolution**, and **server-side Gemini 3.8 Flash AI reasoning**.
 
 ---
 
@@ -155,3 +155,7 @@ npm run dev
 - **Email:** `demo@pwoa.dev`
 - **Password:** `password123`
 - Pre-populated with 3 projects, 16 realistic tasks across various stages, and 4 dependencies.
+
+### Author
+
+Esheshwari Kumari
