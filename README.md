@@ -156,6 +156,9 @@ npm run dev
 - **Password:** `password123`
 - Pre-populated with 3 projects, 16 realistic tasks across various stages, and 4 dependencies.
 
+### LICENSE
+MIT LICENSE
+
 ### Author
 
 Esheshwari Kumari
