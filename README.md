@@ -159,6 +159,9 @@ npm run dev
 ### LICENSE
 MIT LICENSE
 
+### Deployment
+pwoa.vercel.app
+
 ### Author
 
 Esheshwari Kumari
