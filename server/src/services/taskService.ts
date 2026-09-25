@@ -1,6 +1,6 @@
-import { execute, query, queryOne } from '../db/database';
-import { generateAITaskPriority } from './aiService';
-import { calculateDeterministicPriority, PriorityWeights } from './priorityService';
+import { execute, query, queryOne } from '../db/database.js';
+import { generateAITaskPriority } from './aiService.js';
+import { calculateDeterministicPriority, PriorityWeights } from './priorityService.js';
 
 export interface TaskItem {
   id: string;

@@ -1,4 +1,4 @@
-import { query } from '../db/database';
+import { query } from '../db/database.js';
 
 export interface DashboardMetrics {
   summary: {

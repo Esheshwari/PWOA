@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { PGlite } from '@electric-sql/pglite';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 interface DatabaseClient {
   query(sql: string, params?: any[]): Promise<any[]>;

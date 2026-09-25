@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
-import { config } from '../config/env';
-import { DeterministicPriorityResult, TaskEvaluationInput } from './priorityService';
+import { config } from '../config/env.js';
+import { DeterministicPriorityResult, TaskEvaluationInput } from './priorityService.js';
 
 let genAIClient: GoogleGenAI | null = null;
 

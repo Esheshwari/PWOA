@@ -1,10 +1,10 @@
 import { Response, Router } from 'express';
-import { AuthRequest, authMiddleware } from '../middleware/auth';
+import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 import {
   EVALUATION_BENCHMARK_CASES,
   getLatestEvaluation,
   runEvaluationSuite,
-} from '../services/evaluationService';
+} from '../services/evaluationService.js';
 
 const router = Router();
 router.use(authMiddleware);

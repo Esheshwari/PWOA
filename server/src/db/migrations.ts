@@ -1,4 +1,4 @@
-import { execute } from './database';
+import { execute } from './database.js';
 
 export async function runMigrations(): Promise<void> {
   console.log('Running PostgreSQL relational schema migrations...');

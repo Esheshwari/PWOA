@@ -1,8 +1,8 @@
 import { Response, Router } from 'express';
-import { AuthRequest, authMiddleware } from '../middleware/auth';
-import { askAIAssistant } from '../services/aiService';
-import { getUserProjects } from '../services/projectService';
-import { getUserTasks } from '../services/taskService';
+import { AuthRequest, authMiddleware } from '../middleware/auth.js';
+import { askAIAssistant } from '../services/aiService.js';
+import { getUserProjects } from '../services/projectService.js';
+import { getUserTasks } from '../services/taskService.js';
 
 const router = Router();
 router.use(authMiddleware);

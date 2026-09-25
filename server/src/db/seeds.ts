@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { config } from '../config/env';
-import { execute, queryOne } from './database';
+import { config } from '../config/env.js';
+import { execute, queryOne } from './database.js';
 
 export async function runSeeds(): Promise<void> {
   if (!config.seedDemoData) {

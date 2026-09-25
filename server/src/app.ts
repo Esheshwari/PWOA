@@ -1,11 +1,11 @@
 import cors from 'cors';
 import express from 'express';
-import aiRoutes from './routes/ai';
-import analyticsRoutes from './routes/analytics';
-import authRoutes from './routes/auth';
-import evaluationRoutes from './routes/evaluation';
-import projectRoutes from './routes/projects';
-import taskRoutes from './routes/tasks';
+import aiRoutes from './routes/ai.js';
+import analyticsRoutes from './routes/analytics.js';
+import authRoutes from './routes/auth.js';
+import evaluationRoutes from './routes/evaluation.js';
+import projectRoutes from './routes/projects.js';
+import taskRoutes from './routes/tasks.js';
 
 export function createExpressApp(): express.Express {
   const app = express();

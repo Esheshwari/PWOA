@@ -1,6 +1,6 @@
 import { Response, Router } from 'express';
-import { AuthRequest, authMiddleware } from '../middleware/auth';
-import { createProject, deleteProject, getProjectById, getUserProjects, updateProject } from '../services/projectService';
+import { AuthRequest, authMiddleware } from '../middleware/auth.js';
+import { createProject, deleteProject, getProjectById, getUserProjects, updateProject } from '../services/projectService.js';
 
 const router = Router();
 router.use(authMiddleware);

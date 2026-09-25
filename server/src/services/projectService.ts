@@ -1,4 +1,4 @@
-import { execute, query, queryOne } from '../db/database';
+import { execute, query, queryOne } from '../db/database.js';
 
 export interface ProjectItem {
   id: string;

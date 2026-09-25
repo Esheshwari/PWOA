@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { config } from '../config/env';
-import { execute, queryOne } from '../db/database';
-import { DEFAULT_WEIGHTS, PriorityWeights } from './priorityService';
+import { config } from '../config/env.js';
+import { execute, queryOne } from '../db/database.js';
+import { DEFAULT_WEIGHTS, PriorityWeights } from './priorityService.js';
 
 export interface UserProfile {
   id: string;

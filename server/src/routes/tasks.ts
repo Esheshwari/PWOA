@@ -1,5 +1,5 @@
 import { Response, Router } from 'express';
-import { AuthRequest, authMiddleware } from '../middleware/auth';
+import { AuthRequest, authMiddleware } from '../middleware/auth.js';
 import {
   addDependency,
   createTask,
@@ -10,7 +10,7 @@ import {
   prioritizeTask,
   removeDependency,
   updateTask,
-} from '../services/taskService';
+} from '../services/taskService.js';
 
 const router = Router();
 router.use(authMiddleware);
